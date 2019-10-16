@@ -9,11 +9,11 @@ import java.util.Scanner;
 
 public class Algorithm {
 
-        private static int[][] testMatrix = {
-                {1, 2, 3},
-                {4, 5, 6},
-                {0, 7, 8}
-        };
+    private static int[][] testMatrix = {
+            {1, 2, 3},
+            {4, 5, 6},
+            {0, 7, 8}
+    };
 //    private static int[][] testMatrix = {
 //            {1, 2, 3},
 //            {4, 7, 5},
@@ -25,7 +25,7 @@ public class Algorithm {
 //    private static int finalNeutralPosition = 4;
 
     public static void main(String[] args) {
-        if (true) {
+        if (false) {
             Scanner scanner = new Scanner(System.in);
 
             int elements = scanner.nextInt();
@@ -50,18 +50,19 @@ public class Algorithm {
 
         Configuration result = null;
 
-        while (!priorityQueue.isEmpty()) {
-            Configuration current = priorityQueue.poll();
-            if (current.getHeuristicValue() == 0) {
-                result = current;
-                break;
-            }
-            priorityQueue.addAll(algorithm.getChildren(current));
-        }
+        int threshold = 5;
 
-        if (result == null) {
-            System.out.println("There is no solution.");
-            return;
+        while (result == null) {
+            while (!priorityQueue.isEmpty()) {
+                Configuration current = priorityQueue.poll();
+                if (current.getHeuristicValue() == 0) {
+                    result = current;
+                    break;
+                }
+                priorityQueue.addAll(algorithm.getChildren(current, threshold));
+            }
+            threshold++;
+
         }
 
         System.out.println("Final matrix: ");
@@ -127,7 +128,7 @@ public class Algorithm {
     }
 
 
-    public List<Configuration> getChildren(Configuration parent) {
+    public List<Configuration> getChildren(Configuration parent, int threshold) {
         List<Configuration> children = new ArrayList<>();
 
         Moves forbiddenMove = parent.getLastMove().getTheOpposite();
@@ -135,26 +136,27 @@ public class Algorithm {
 
         if (forbiddenMove != Moves.UP) {
             Configuration child = generateChild(parent, Moves.UP);
-            addIfNotNull(children, child);
+            addIfNotNullWithThreshold(children, child, threshold);
         }
         if (forbiddenMove != Moves.DOWN) {
             Configuration child = generateChild(parent, Moves.DOWN);
-            addIfNotNull(children, child);
+            addIfNotNullWithThreshold(children, child, threshold);
         }
         if (forbiddenMove != Moves.LEFT) {
             Configuration child = generateChild(parent, Moves.LEFT);
-            addIfNotNull(children, child);
+            addIfNotNullWithThreshold(children, child, threshold);
         }
         if (forbiddenMove != Moves.RIGHT) {
             Configuration child = generateChild(parent, Moves.RIGHT);
-            addIfNotNull(children, child);
+            addIfNotNullWithThreshold(children, child, threshold);
         }
         return children;
     }
 
-    private <T> void addIfNotNull(List<T> list, T object) {
-        if (object != null) {
-            list.add(object);
+    private void addIfNotNullWithThreshold(List<Configuration> list, Configuration configuration,
+            int threshold) {
+        if (configuration != null && configuration.getHeuristicValue() < threshold) {
+            list.add(configuration);
         }
     }
 
