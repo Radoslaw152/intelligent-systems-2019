@@ -10,13 +10,13 @@ import lombok.Data;
 public class Configuration implements Comparable<Configuration>{
     public static final int EMPTY_FIELD = 0;
 
-    int[][] matrix;
-    int heuristicValue;
-    int steps;
-    int neutralPositionRow;
-    int neutralPositionColumn;
-    Moves lastMove;
-    Configuration parentConfiguration;
+    private int[][] matrix;
+    private int heuristicValue;
+    private int steps;
+    private int neutralPositionRow;
+    private int neutralPositionColumn;
+    private Moves lastMove;
+    private Configuration parentConfiguration;
 
     public Configuration(int[][] matrix, int heuristicValue) {
         this(matrix, heuristicValue, 0,

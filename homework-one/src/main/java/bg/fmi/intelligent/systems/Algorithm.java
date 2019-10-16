@@ -9,22 +9,23 @@ import java.util.Scanner;
 
 public class Algorithm {
 
-//        private static int[][] testMatrix = {
-//                {1, 2, 3},
-//                {4, 5, 6},
-//                {0, 7, 8}
-//        };
-    private static int[][] testMatrix = {
-            {1, 2, 3},
-            {4, 7, 5},
-            {0, 6, 8}
-    };
+        private static int[][] testMatrix = {
+                {1, 2, 3},
+                {4, 5, 6},
+                {0, 7, 8}
+        };
+//    private static int[][] testMatrix = {
+//            {1, 2, 3},
+//            {4, 7, 5},
+//            {0, 6, 8}
+//    };
 
-//        private static int finalNeutralPosition = testMatrix.length * testMatrix.length - 1;
-    private static int finalNeutralPosition = 4;
+
+    private static int finalNeutralPosition = testMatrix.length * testMatrix.length - 1;
+//    private static int finalNeutralPosition = 4;
 
     public static void main(String[] args) {
-        if (false) {
+        if (true) {
             Scanner scanner = new Scanner(System.in);
 
             int elements = scanner.nextInt();
@@ -58,15 +59,30 @@ public class Algorithm {
             priorityQueue.addAll(algorithm.getChildren(current));
         }
 
+        if (result == null) {
+            System.out.println("There is no solution.");
+            return;
+        }
+
+        System.out.println("Final matrix: ");
         int[][] matrix = result.getMatrix();
-        for (int i = 0; i < matrix.length; ++i) {
+        for (int[] matrixRow : matrix) {
             for (int j = 0; j < matrix.length; ++j) {
-                System.out.print(matrix[i][j] + " ");
+                System.out.print(matrixRow[j] + " ");
             }
             System.out.println();
         }
 
-        System.out.println(result.steps);
+
+        System.out.println("Steps: " + result.getSteps());
+
+        List<String> directions = new ArrayList<>();
+        while (result != null && result.getParentConfiguration() != null) {
+            directions.add(0, result.getLastMove().getTheOpposite().toString());
+            result = result.getParentConfiguration();
+        }
+
+        directions.forEach(direction -> System.out.println("Direction: " + direction));
     }
 
     public int calculateHeuristic(int[][] matrix) {
@@ -114,22 +130,7 @@ public class Algorithm {
     public List<Configuration> getChildren(Configuration parent) {
         List<Configuration> children = new ArrayList<>();
 
-        Moves forbiddenMove = Moves.NEUTRAL;
-
-        switch (parent.lastMove) {
-            case RIGHT:
-                forbiddenMove = Moves.LEFT;
-                break;
-            case LEFT:
-                forbiddenMove = Moves.RIGHT;
-                break;
-            case UP:
-                forbiddenMove = Moves.DOWN;
-                break;
-            case DOWN:
-                forbiddenMove = Moves.UP;
-                break;
-        }
+        Moves forbiddenMove = parent.getLastMove().getTheOpposite();
 
 
         if (forbiddenMove != Moves.UP) {
@@ -195,7 +196,7 @@ public class Algorithm {
                     .neutralPositionRow(nextNeutralRow)
                     .neutralPositionColumn(nextNeutralColumn)
                     .lastMove(currentMove)
-                    .steps(parent.steps + 1)
+                    .steps(parent.getSteps() + 1)
                     .parentConfiguration(parent)
                     .build();
         }
@@ -203,7 +204,9 @@ public class Algorithm {
     }
 
     private int[][] transformed(int[][] matrix, int row, int column, int nextRow, int nextColumn) {
-        int[][] transformed = Arrays.stream(matrix).map(int[]::clone).toArray(int[][]::new);
+        int[][] transformed = Arrays.stream(matrix)
+                .map(int[]::clone)
+                .toArray(int[][]::new);
 
         if (nextRow < 0 || nextRow >= matrix.length
                 || nextColumn < 0 || nextColumn >= matrix.length) {
