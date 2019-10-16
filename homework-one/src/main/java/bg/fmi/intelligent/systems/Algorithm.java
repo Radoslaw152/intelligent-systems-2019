@@ -77,11 +77,7 @@ public class Algorithm {
 
         System.out.println("Steps: " + result.getSteps());
 
-        List<String> directions = new ArrayList<>();
-        while (result != null && result.getParentConfiguration() != null) {
-            directions.add(0, result.getLastMove().getTheOpposite().toString());
-            result = result.getParentConfiguration();
-        }
+        List<String> directions = result.getDirections();
 
         directions.forEach(direction -> System.out.println("Direction: " + direction));
     }
@@ -192,6 +188,10 @@ public class Algorithm {
         Configuration child = null;
         if (matrix != null) {
             int heuristicValue = calculateHeuristic(matrix);
+
+            List<String> childDirections = new ArrayList<>(parent.getDirections());
+            childDirections.add(currentMove.getTheOpposite().toString());
+
             child = Configuration.builder()
                     .matrix(matrix)
                     .heuristicValue(heuristicValue)
@@ -199,7 +199,7 @@ public class Algorithm {
                     .neutralPositionColumn(nextNeutralColumn)
                     .lastMove(currentMove)
                     .steps(parent.getSteps() + 1)
-                    .parentConfiguration(parent)
+                    .directions(childDirections)
                     .build();
         }
         return child;

@@ -1,5 +1,8 @@
 package bg.fmi.intelligent.systems;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -16,12 +19,12 @@ public class Configuration implements Comparable<Configuration>{
     private int neutralPositionRow;
     private int neutralPositionColumn;
     private Moves lastMove;
-    private Configuration parentConfiguration;
+    private List<String> directions;
 
     public Configuration(int[][] matrix, int heuristicValue) {
         this(matrix, heuristicValue, 0,
                 0,0,
-                Moves.NEUTRAL, null);
+                Moves.NEUTRAL, new ArrayList<>());
 
         while (neutralPositionRow < matrix.length) {
             neutralPositionColumn = 0;
