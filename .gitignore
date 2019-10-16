@@ -1,3 +1,22 @@
+target/
+/build/
+/target/
+/*/target/
+/*/*/target/
+/*/*/*/target/
+/*/*/*/*/target/
+.project
+.classpath
+.settings
+.checkstyle
+.DS_Store
+.reviewboardrc
+*.iml
+*.log
+.idea/
+.metadata/
+.m2/
+
 # Compiled class file
 *.class
 
@@ -20,4 +39,4 @@
 *.rar
 
 # virtual machine crash logs, see http://www.java.com/en/download/help/error_hotspot.xml
-hs_err_pid*
+hs_e:rr_pid*
