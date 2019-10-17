@@ -9,23 +9,18 @@ import java.util.Scanner;
 
 public class Algorithm {
 
-    private static int[][] testMatrix = {
-            {1, 2, 3},
-            {4, 5, 6},
-            {0, 7, 8}
+        private static int[][] testMatrix = {
+            {2, 3, 9, 7},
+            {10, 0, 14, 13},
+            {8, 1, 5, 4},
+            {11, 12, 15, 6}
     };
-//    private static int[][] testMatrix = {
-//            {1, 2, 3},
-//            {4, 7, 5},
-//            {0, 6, 8}
-//    };
 
-
-    private static int finalNeutralPosition = testMatrix.length * testMatrix.length - 1;
-//    private static int finalNeutralPosition = 4;
+    private static Position[] goalPositions;
+    private static int finalNeutralPosition = testMatrix.length * testMatrix.length;
 
     public static void main(String[] args) {
-        if (false) {
+        if (true) {
             Scanner scanner = new Scanner(System.in);
 
             int elements = scanner.nextInt();
@@ -41,16 +36,17 @@ public class Algorithm {
         }
 
         Algorithm algorithm = new Algorithm();
+        algorithm.setGoalPositions();
 
-        Configuration intial = new Configuration(testMatrix,
+        Configuration initial = new Configuration(testMatrix,
                 algorithm.calculateHeuristic(testMatrix));
 
         PriorityQueue<Configuration> priorityQueue = new PriorityQueue<>(Configuration::compareTo);
-        priorityQueue.add(intial);
+        priorityQueue.add(initial);
 
         Configuration result = null;
 
-        int threshold = 5;
+        int threshold = 500;
 
         while (result == null) {
             while (!priorityQueue.isEmpty()) {
@@ -86,43 +82,57 @@ public class Algorithm {
         return manhattanDistance(matrix);
     }
 
-    private int manhattanDistance(int[][] matrix) {
-        int dimension = matrix.length * matrix.length;
+    private void setGoalPositions() {
+        int dimension = testMatrix.length * testMatrix.length;
+        goalPositions = new Position[dimension];
+
         int currentRow = 0;
         int currentColumn = 0;
 
-        int heuristic = 0;
+        boolean hasAddedNeutralPosition = false;
+        for (int i = 1; i < dimension; ++i) {
+            Position current = new Position();
+            current.row = currentRow;
+            current.column = currentColumn;
 
-        for (int element = 1; element < dimension; ++element) {
-
-            if (element == finalNeutralPosition && finalNeutralPosition != dimension - 1) {
-                currentColumn++;
-                if (currentColumn == matrix.length) {
-                    currentColumn = 0;
-                    currentRow++;
-                }
+            if (i == finalNeutralPosition && !hasAddedNeutralPosition) {
+                goalPositions[0] = current;
+                --i;
+                hasAddedNeutralPosition = true;
+            } else {
+                goalPositions[i] = current;
             }
 
-            for (int i = 0; i < matrix.length; ++i) {
-                for (int j = 0; j < matrix.length; ++j) {
-
-                    if (matrix[i][j] == element) {
-                        heuristic += Math.abs(i - currentRow) + Math.abs(j - currentColumn);
-                        currentColumn++;
-                        if (currentColumn == matrix.length) {
-                            currentColumn = 0;
-                            currentRow++;
-                        }
-                        break;
-                    }
-
-                }
+            currentColumn++;
+            if (currentColumn == testMatrix.length) {
+                currentColumn = 0;
+                currentRow++;
             }
-
         }
-        return heuristic;
+
+        if (finalNeutralPosition == -1) {
+            Position emptyPosition = new Position();
+            emptyPosition.row = testMatrix.length - 1;
+            emptyPosition.column = testMatrix.length - 1;
+            goalPositions[0] = emptyPosition;
+        }
     }
 
+    private int manhattanDistance(int[][] matrix) {
+        int heuristic = 0;
+
+         for (int i = 0; i < matrix.length; ++i) {
+            for (int j = 0; j < matrix.length; ++j) {
+                int element = matrix[i][j];
+                if (element != Configuration.EMPTY_FIELD) {
+                    heuristic += Math.abs(i - goalPositions[element].row)
+                            + Math.abs(j - goalPositions[element].column);
+                }
+            }
+        }
+
+        return heuristic;
+    }
 
     public List<Configuration> getChildren(Configuration parent, int threshold) {
         List<Configuration> children = new ArrayList<>();
@@ -151,7 +161,8 @@ public class Algorithm {
 
     private void addIfNotNullWithThreshold(List<Configuration> list, Configuration configuration,
             int threshold) {
-        if (configuration != null && configuration.getHeuristicValue() < threshold) {
+        if (configuration != null
+                && configuration.getHeuristicValue() + configuration.getSteps() < threshold) {
             list.add(configuration);
         }
     }
@@ -219,5 +230,10 @@ public class Algorithm {
         transformed[nextRow][nextColumn] = Configuration.EMPTY_FIELD;
 
         return transformed;
+    }
+
+    private static class Position {
+        int row;
+        int column;
     }
 }
