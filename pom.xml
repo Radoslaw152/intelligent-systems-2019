@@ -7,10 +7,13 @@
     <groupId>bg.fmi.intelligent.systems</groupId>
     <artifactId>all-homeworks</artifactId>
     <version>1.0.0-SNAPSHOT</version>
+    <packaging>pom</packaging>
 
     <modules>
         <module>homework-one</module>
+        <module>homework-two</module>
     </modules>
+
     <properties>
         <maven.compiler.source>1.8</maven.compiler.source>
         <maven.compiler.target>1.8</maven.compiler.target>
