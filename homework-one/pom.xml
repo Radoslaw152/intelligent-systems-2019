@@ -4,21 +4,18 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
-    <groupId>bg.fmi.intelligent.systems</groupId>
-    <artifactId>homework-one</artifactId>
-    <version>1.0.0-SNAPSHOT</version>
+    <parent>
+        <groupId>bg.fmi.intelligent.systems</groupId>
+        <artifactId>all-homeworks</artifactId>
+        <version>1.0.0-SNAPSHOT</version>
+    </parent>
 
-    <properties>
-        <maven.compiler.source>1.8</maven.compiler.source>
-        <maven.compiler.target>1.8</maven.compiler.target>
-    </properties>
+    <artifactId>homework-one</artifactId>
 
     <dependencies>
         <dependency>
             <groupId>org.projectlombok</groupId>
             <artifactId>lombok</artifactId>
-            <version>1.18.8</version>
-            <scope>provided</scope>
         </dependency>
     </dependencies>
 </project>
