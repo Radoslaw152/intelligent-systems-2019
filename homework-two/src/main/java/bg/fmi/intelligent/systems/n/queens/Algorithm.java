@@ -2,7 +2,7 @@ package bg.fmi.intelligent.systems.n.queens;
 
 public class Algorithm {
     public static void main(String[] args) {
-        Configuration config = new Configuration(5);
+        Configuration config = new Configuration(3);
         for(int i = 0; i < config.getQueens().length;++i) {
             System.out.print(config.getQueens()[i] + " ");
         }
