@@ -6,6 +6,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Random;
 
+import lombok.AllArgsConstructor;
 import lombok.Data;
 
 @Data
@@ -30,8 +31,8 @@ public class Configuration {
                     .min()
                     .orElseThrow(RuntimeException::new);
 
-            for(int j = 0; j < queenConflicts.length;++j) {
-                if(min == queenConflicts[j]) {
+            for (int j = 0; j < queenConflicts.length; ++j) {
+                if (min == queenConflicts[j]) {
                     mins.add(j);
                 }
             }
@@ -44,11 +45,11 @@ public class Configuration {
         }
     }
 
-    public void increaseConflict(int queen) {
+    private void increaseConflict(int queen) {
         changeConflict(queen, 1);
     }
 
-    public void decreaseConflict(int queen) {
+    private void decreaseConflict(int queen) {
         changeConflict(queen, -1);
     }
 
@@ -57,10 +58,10 @@ public class Configuration {
         int y = queens[queen];
 
         for (int i = 0; i < queens.length; ++i) {
-            if(i != y) {
+            if (i != y) {
                 conflicts[x][i] += toAdd;
             }
-            if(i != x) {
+            if (i != x) {
                 conflicts[i][y] += toAdd;
             }
 
@@ -80,7 +81,68 @@ public class Configuration {
 
     }
 
-    public static int getRandom(int bound) {
+    private void changeQueensPlace(int queen, int position) {
+        decreaseConflict(queen);
+
+        queens[queen] = position;
+
+        increaseConflict(queen);
+    }
+
+    private static int getRandom(int bound) {
         return random.nextInt(bound);
+    }
+
+    private ConflictValue findBestQueen() {
+        List<ConflictValue> possibleQueens = new ArrayList<>();
+        for (int i = 0; i < conflicts.length; ++i) {
+            int currentConflictValue = conflicts[i][queens[i]];
+
+            int minConflict = Arrays.stream(conflicts[i])
+                    .min()
+                    .orElseThrow(RuntimeException::new);
+
+            if (currentConflictValue - minConflict == 0) {
+                continue;
+            }
+
+            List<ConflictValue> allMinValues = new ArrayList<>();
+            for (int j = 0; i < conflicts[i].length; ++j) {
+                if (minConflict == conflicts[i][j]) {
+                    ConflictValue value =
+                            new ConflictValue(i, currentConflictValue - minConflict, j);
+                    allMinValues.add(value);
+                }
+            }
+
+            if (possibleQueens.isEmpty()) {
+                possibleQueens.addAll(allMinValues);
+            } else if (possibleQueens.get(0).maxValue == currentConflictValue - minConflict) {
+                possibleQueens.addAll(allMinValues);
+            } else if (possibleQueens.get(0).maxValue < currentConflictValue - minConflict) {
+                possibleQueens.clear();
+                possibleQueens.addAll(allMinValues);
+            }
+        }
+
+        if (possibleQueens.isEmpty()) {
+            throw new RuntimeException("No solution");
+        }
+
+        return  possibleQueens.get(getRandom(possibleQueens.size()));
+    }
+
+    public void makeMove() {
+        ConflictValue value = findBestQueen();
+        changeQueensPlace(value.getQueen(),value.getPosition());
+    }
+
+    public boolean checkIfCorrect() {
+        for(int i = 0; i < queens.length;++i) {
+            if(conflicts[i][queens[i]] != 0) {
+                return false;
+            }
+        }
+        return true;
     }
 }

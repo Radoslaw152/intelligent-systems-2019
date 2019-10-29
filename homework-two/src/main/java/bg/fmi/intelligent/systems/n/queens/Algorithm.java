@@ -2,17 +2,36 @@ package bg.fmi.intelligent.systems.n.queens;
 
 public class Algorithm {
     public static void main(String[] args) {
-        Configuration config = new Configuration(3);
-        for(int i = 0; i < config.getQueens().length;++i) {
-            System.out.print(config.getQueens()[i] + " ");
-        }
-        System.out.println();
-        System.out.println("Conflicts");
-        for(int i = 0; i < config.getConflicts().length;++i) {
-            for(int j = 0; j < config.getConflicts()[i].length;++j) {
-                System.out.print(config.getConflicts()[i][j] + " ");
+
+        int size = 3;
+
+        while (true) {
+            Configuration configuration = new Configuration(size);
+            boolean isCorrect = false;
+            try {
+                for (int i = 0; i < 150; ++i) {
+                    configuration.makeMove();
+                    isCorrect = configuration.checkIfCorrect();
+                    if (isCorrect) {
+                        break;
+                    }
+                }
+            } catch (RuntimeException e) {
+                continue;
             }
-            System.out.println();
+
+            if (isCorrect) {
+                for (int i = 0; i < configuration.getQueens().length; ++i) {
+                    for (int j = 0; j < configuration.getQueens().length; ++j) {
+                        if (configuration.getQueens()[j] == j) {
+                            System.out.print("*");
+                        } else {
+                            System.out.print("_");
+                        }
+                    }
+                    System.out.println();
+                }
+            }
         }
     }
 }
