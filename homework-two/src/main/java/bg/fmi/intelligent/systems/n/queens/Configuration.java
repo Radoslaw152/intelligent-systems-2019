@@ -6,14 +6,15 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Random;
 
-import lombok.AllArgsConstructor;
 import lombok.Data;
 
 @Data
 public class Configuration {
     public static final Random random = new Random();
-    public int[] queens;
-    public int[][] conflicts;
+    private int[] queens;
+    private int[][] conflicts;
+    private List<ConflictValue> possibleQueens = new ArrayList<>();
+    private List<ConflictValue> allMinValues = new ArrayList<>();
 
     public Configuration(int size) {
         queens = new int[size];
@@ -94,7 +95,7 @@ public class Configuration {
     }
 
     private ConflictValue findBestQueen() {
-        List<ConflictValue> possibleQueens = new ArrayList<>();
+        possibleQueens.clear();
         for (int i = 0; i < conflicts.length; ++i) {
             int currentConflictValue = conflicts[i][queens[i]];
 
@@ -106,11 +107,11 @@ public class Configuration {
                 continue;
             }
 
-            List<ConflictValue> allMinValues = new ArrayList<>();
+            allMinValues.clear();
             for (int j = 0; i < conflicts[i].length; ++j) {
                 if (minConflict == conflicts[i][j]) {
                     ConflictValue value =
-                            new ConflictValue(i, currentConflictValue - minConflict, j);
+                            new ConflictValue(i, currentConflictValue - minConflict, j, false);
                     allMinValues.add(value);
                 }
             }
@@ -124,22 +125,28 @@ public class Configuration {
                 possibleQueens.addAll(allMinValues);
             }
         }
-
+        if(possibleQueens.isEmpty() && checkIfCorrect()) {
+            return new ConflictValue(0,0,0,true);
+        }
         if (possibleQueens.isEmpty()) {
             throw new RuntimeException("No solution");
         }
 
-        return  possibleQueens.get(getRandom(possibleQueens.size()));
+        return possibleQueens.get(getRandom(possibleQueens.size()));
     }
 
-    public void makeMove() {
+    public boolean makeMove() {
         ConflictValue value = findBestQueen();
-        changeQueensPlace(value.getQueen(),value.getPosition());
+        if(!value.foundSolution) {
+            changeQueensPlace(value.getQueen(), value.getPosition());
+            return true;
+        }
+        return false;
     }
 
     public boolean checkIfCorrect() {
-        for(int i = 0; i < queens.length;++i) {
-            if(conflicts[i][queens[i]] != 0) {
+        for (int i = 0; i < queens.length; ++i) {
+            if (conflicts[i][queens[i]] != 0) {
                 return false;
             }
         }

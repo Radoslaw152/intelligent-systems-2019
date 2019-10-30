@@ -9,4 +9,5 @@ public class ConflictValue {
     int queen;
     int maxValue;
     int position;
+    boolean foundSolution;
 }
