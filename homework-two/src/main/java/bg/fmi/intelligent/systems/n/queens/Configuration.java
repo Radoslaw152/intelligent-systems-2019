@@ -2,154 +2,123 @@ package bg.fmi.intelligent.systems.n.queens;
 
 
 import java.util.ArrayList;
-import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.Random;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
-import lombok.Data;
+import lombok.AllArgsConstructor;
 
-@Data
 public class Configuration {
     public static final Random random = new Random();
+
+    private int size;
     private int[] queens;
-    private int[][] conflicts;
-    private List<ConflictValue> possibleQueens = new ArrayList<>();
-    private List<ConflictValue> allMinValues = new ArrayList<>();
+    private int[] columns;
+    private int[] diagonalFirst;
+    private int[] diagonalSecond;
+    private List<Conflict> minConflictQueens = new ArrayList<>();
+    private List<Conflict> maxConflictQueens = new ArrayList<>();
 
     public Configuration(int size) {
+
         queens = new int[size];
-        conflicts = new int[size][size];
-        for (int[] row : conflicts) {
-            for (int i = 0; i < row.length; ++i) {
-                row[i] = 0;
+        columns = new int[size];
+        diagonalFirst = new int[2 * size - 1];
+        diagonalSecond = new int[2 * size - 1];
+
+
+        List<Integer> shuffledColumns = IntStream.range(0,size).boxed().collect(Collectors.toList());
+        Collections.shuffle(shuffledColumns);
+
+        for (int i = 0; i < shuffledColumns.size(); ++i) {
+            int currentColumn = shuffledColumns.get(i);
+            queens[i] = currentColumn;
+            columns[currentColumn]++;
+            diagonalFirst[size - 1 - currentColumn + i]++;
+            diagonalSecond[currentColumn + i]++;
+        }
+        this.size = size;
+    }
+
+    public int[] getQueensPlace() {
+        boolean hasFoundSolution = false;
+        for (int i = 0; i < 2 * size; ++i) {
+            int row = getRowWithMaxConflicts();
+            if (row == -1) {
+                hasFoundSolution = true;
+                break;
+            }
+
+            int previousColumn = queens[row];
+            int nextColumn = getColumnWithMinConflicts(row);
+
+            queens[row] = nextColumn;
+
+            columns[previousColumn]--;
+            columns[nextColumn]++;
+
+            diagonalFirst[size - 1 - previousColumn + row]--;
+            diagonalFirst[size - 1 - nextColumn + row]++;
+
+            diagonalSecond[previousColumn + row]--;
+            diagonalSecond[nextColumn + row]++;
+        }
+
+        if (hasFoundSolution) {
+            return queens;
+        }
+        return null;
+    }
+
+    private int getColumnWithMinConflicts(int row) {
+        minConflictQueens.clear();
+
+        for (int column = 0; column < size; ++column) {
+            int candidate =
+                    columns[column] + diagonalFirst[size - 1 - column + row] + diagonalSecond[row
+                            + column];
+
+            if (minConflictQueens.isEmpty() || minConflictQueens.get(0).value == candidate) {
+                minConflictQueens.add(new Conflict(column, candidate));
+            } else if (minConflictQueens.get(0).value > candidate) {
+                minConflictQueens.clear();
+                minConflictQueens.add(new Conflict(column, candidate));
             }
         }
 
-        List<Integer> mins = new ArrayList<>();
-        for (int i = 0; i < queens.length; ++i) {
-            int[] queenConflicts = conflicts[i];
-            int min = Arrays.stream(queenConflicts)
-                    .min()
-                    .orElseThrow(RuntimeException::new);
-
-            for (int j = 0; j < queenConflicts.length; ++j) {
-                if (min == queenConflicts[j]) {
-                    mins.add(j);
-                }
-            }
-
-            int position = mins.get(getRandom(mins.size()));
-            mins.clear();
-
-            queens[i] = position;
-            increaseConflict(i);
-        }
+        return minConflictQueens.get(random.nextInt( minConflictQueens.size())).place;
     }
 
-    private void increaseConflict(int queen) {
-        changeConflict(queen, 1);
-    }
+    private int getRowWithMaxConflicts() {
+        maxConflictQueens.clear();
 
-    private void decreaseConflict(int queen) {
-        changeConflict(queen, -1);
-    }
+        for (int row = 0; row < size; ++row) {
+            int column = queens[row];
+            int candidate =
+                    columns[column] + diagonalFirst[size - 1 - column + row] + diagonalSecond[row
+                            + column] - 3;
 
-    private void changeConflict(int queen, int toAdd) {
-        int x = queen;
-        int y = queens[queen];
-
-        for (int i = 0; i < queens.length; ++i) {
-            if (i != y) {
-                conflicts[x][i] += toAdd;
-            }
-            if (i != x) {
-                conflicts[i][y] += toAdd;
-            }
-
-            if (x > i && y > i) {
-                conflicts[x - i - 1][y - i - 1] += toAdd;
-            }
-            if (x > i && y + i + 1 < queens.length) {
-                conflicts[x - i - 1][y + i + 1] += toAdd;
-            }
-            if (x + i + 1 < queens.length && y > i) {
-                conflicts[x + i + 1][y - i - 1] += toAdd;
-            }
-            if (x + i + 1 < queens.length && y + i + 1 < queens.length) {
-                conflicts[x + i + 1][y + i + 1] += toAdd;
+            if (maxConflictQueens.isEmpty() || maxConflictQueens.get(0).value == candidate) {
+                maxConflictQueens.add(new Conflict(row, candidate));
+            } else if (maxConflictQueens.get(0).value < candidate) {
+                maxConflictQueens.clear();
+                maxConflictQueens.add(new Conflict(row, candidate));
             }
         }
 
-    }
-
-    private void changeQueensPlace(int queen, int position) {
-        decreaseConflict(queen);
-
-        queens[queen] = position;
-
-        increaseConflict(queen);
-    }
-
-    private static int getRandom(int bound) {
-        return random.nextInt(bound);
-    }
-
-    private ConflictValue findBestQueen() {
-        possibleQueens.clear();
-        for (int i = 0; i < conflicts.length; ++i) {
-            int currentConflictValue = conflicts[i][queens[i]];
-
-            int minConflict = Arrays.stream(conflicts[i])
-                    .min()
-                    .orElseThrow(RuntimeException::new);
-
-            if (currentConflictValue - minConflict == 0) {
-                continue;
-            }
-
-            allMinValues.clear();
-            for (int j = 0; i < conflicts[i].length; ++j) {
-                if (minConflict == conflicts[i][j]) {
-                    ConflictValue value =
-                            new ConflictValue(i, currentConflictValue - minConflict, j, false);
-                    allMinValues.add(value);
-                }
-            }
-
-            if (possibleQueens.isEmpty()) {
-                possibleQueens.addAll(allMinValues);
-            } else if (possibleQueens.get(0).maxValue == currentConflictValue - minConflict) {
-                possibleQueens.addAll(allMinValues);
-            } else if (possibleQueens.get(0).maxValue < currentConflictValue - minConflict) {
-                possibleQueens.clear();
-                possibleQueens.addAll(allMinValues);
-            }
-        }
-        if(possibleQueens.isEmpty() && checkIfCorrect()) {
-            return new ConflictValue(0,0,0,true);
-        }
-        if (possibleQueens.isEmpty()) {
-            throw new RuntimeException("No solution");
+        if (maxConflictQueens.get(0).value == 0) {
+            return -1;
         }
 
-        return possibleQueens.get(getRandom(possibleQueens.size()));
+
+        return maxConflictQueens.get(random.nextInt(maxConflictQueens.size())).place;
     }
 
-    public boolean makeMove() {
-        ConflictValue value = findBestQueen();
-        if(!value.foundSolution) {
-            changeQueensPlace(value.getQueen(), value.getPosition());
-            return true;
-        }
-        return false;
-    }
-
-    public boolean checkIfCorrect() {
-        for (int i = 0; i < queens.length; ++i) {
-            if (conflicts[i][queens[i]] != 0) {
-                return false;
-            }
-        }
-        return true;
+    @AllArgsConstructor
+    private static class Conflict {
+        int place;
+        int value;
     }
 }
