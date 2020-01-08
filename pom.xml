@@ -14,6 +14,7 @@
         <module>homework-two</module>
         <module>homework-three</module>
         <module>homework-four</module>
+        <module>homework-five</module>
     </modules>
 
     <properties>

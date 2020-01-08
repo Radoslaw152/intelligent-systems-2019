@@ -6,12 +6,15 @@ public class Algorithm {
     public static void main(String[] args) {
         char[][] board = generateNewMatrix();
         Scanner scanner = new Scanner(System.in);
+        System.out.println("Please, type true (PC first) or false (you first):");
         boolean isMax = scanner.nextBoolean();
         Node node = new Node(board,isMax);
         if(isMax) {
             node = node.traverse();
+        } else {
+
         }
-        while(!node.foundValue()) {
+        while(!node.isSolved()) {
             printMatrix(node.getBoard());
             node.setValueInBoard(scanner);
             node = node.traverse();
