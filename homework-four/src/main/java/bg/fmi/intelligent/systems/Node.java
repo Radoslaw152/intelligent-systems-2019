@@ -22,15 +22,18 @@ public class Node {
     private int choiceColumn;
 
     public Node(char[][] board, boolean isMax) {
-        this(board, isMax, 0,0,0);
+        this(board, isMax, 0, 0, Integer.MIN_VALUE, Integer.MAX_VALUE, 0);
     }
 
-    public Node(char[][] board, boolean isMax, int choiceRow, int choiceColumn,  int depth) {
+    public Node(char[][] board, boolean isMax, int choiceRow, int choiceColumn, int minValue,
+            int maxValue, int depth) {
         this.board = board;
         this.isMax = isMax;
         this.depth = depth;
         this.choiceRow = choiceRow;
         this.choiceColumn = choiceColumn;
+        this.minValue = minValue;
+        this.maxValue = maxValue;
         setValue();
     }
 
@@ -50,8 +53,6 @@ public class Node {
                 maxValue = value;
             }
         }
-        minValue = Integer.MIN_VALUE;
-        maxValue = Integer.MAX_VALUE;
         nextChildColumn = 0;
         nextChildRow = 0;
     }
@@ -61,7 +62,8 @@ public class Node {
             if (board[nextChildRow][nextChildColumn] == '_') {
                 board[nextChildRow][nextChildColumn] = (isMax) ? 'X' : 'O';
 
-                Node result = new Node(board, !isMax, nextChildRow, nextChildColumn, depth + 1);
+                Node result = new Node(board, !isMax, nextChildRow, nextChildColumn, minValue,
+                        maxValue, depth + 1);
 
                 nextChildColumn++;
                 if (nextChildColumn == board.length) {
@@ -90,6 +92,8 @@ public class Node {
         choiceColumn = result.getChoiceColumn();
         board = tempBoard;
         board[choiceRow][choiceColumn] = (isMax) ? 'X' : 'O';
+        minValue = Integer.MIN_VALUE;
+        maxValue = Integer.MAX_VALUE;
         this.setValue();
         return this;
     }
@@ -105,19 +109,22 @@ public class Node {
             }
             return node;
         }
-        Node result;
+        boolean setValue = false;
         if (node.isMax()) {
             for (Node child = node.getNextChild(); child != null; child = node.getNextChild()) {
-                int minValue = node.getMinValue();
-
                 Node resultChild = minMaxAlgorithm(child, false);
-//                if(result.)
                 node.setOwnValue(Math.max(node.getOwnValue(), resultChild.getOwnValue()));
-                node.setMinValue(Math.max(node.getOwnValue(), node.getMinValue()));
-
-                if (node.getOwnValue() != Integer.MIN_VALUE && node.getMinValue() != minValue) {
-                    node.setChoiceRow(child.getChoiceRow());
+                if (node.getOwnValue() > node.getMinValue()) {
+                    node.setMinValue(node.getOwnValue());
+                    if (isRoot) {
+                        node.setChoiceColumn(child.getChoiceColumn());
+                        node.setChoiceRow(child.getChoiceRow());
+                        setValue = true;
+                    }
+                }
+                if(!setValue && isRoot) {
                     node.setChoiceColumn(child.getChoiceColumn());
+                    node.setChoiceRow(child.getChoiceRow());
                 }
 
                 if (node.getMinValue() >= node.getMaxValue()) {
@@ -126,18 +133,19 @@ public class Node {
             }
         } else {
             for (Node child = node.getNextChild(); child != null; child = node.getNextChild()) {
-                int maxValue = node.getMaxValue();
-
                 Node resultChild = minMaxAlgorithm(child, false);
-                if(!node.isSolved) {
-                    node.setOwnValue(resultChild.getOwnValue());
+                node.setOwnValue(Math.min(node.getOwnValue(), resultChild.getOwnValue()));
+                if (node.getMaxValue() > node.getOwnValue()) {
+                    node.setMaxValue(node.getOwnValue());
+                    if (isRoot) {
+                        node.setChoiceColumn(child.getChoiceColumn());
+                        node.setChoiceRow(child.getChoiceRow());
+                        setValue = true;
+                    }
                 }
-//                node.setOwnValue(Math.min(node.getOwnValue(), resultChild.getOwnValue()));
-                node.setMaxValue(Math.min(node.getOwnValue(), node.getMaxValue()));
-
-                if (node.getOwnValue() != Integer.MAX_VALUE && node.getMinValue() != maxValue) {
-                    node.setChoiceRow(child.getChoiceRow());
+                if(!setValue && isRoot) {
                     node.setChoiceColumn(child.getChoiceColumn());
+                    node.setChoiceRow(child.getChoiceRow());
                 }
                 if (node.getMinValue() >= node.getMaxValue()) {
                     break;
