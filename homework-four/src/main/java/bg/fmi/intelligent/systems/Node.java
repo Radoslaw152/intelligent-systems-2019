@@ -11,7 +11,6 @@ import lombok.Setter;
 public class Node {
     private char[][] board;
     private boolean isMax;
-    private boolean isSolved;
     private int minValue;
     private int maxValue;
     private int ownValue;
@@ -20,39 +19,37 @@ public class Node {
     private int depth;
     private int choiceRow;
     private int choiceColumn;
+    private int moves;
+    private boolean solved;
 
     public Node(char[][] board, boolean isMax) {
-        this(board, isMax, 0, 0, Integer.MIN_VALUE, Integer.MAX_VALUE, 0);
+        this(board, isMax, 0, 0, 0, Integer.MIN_VALUE, Integer.MAX_VALUE, 0);
     }
 
-    public Node(char[][] board, boolean isMax, int choiceRow, int choiceColumn, int minValue,
+    public Node(char[][] board, boolean isMax, int moves, int choiceRow, int choiceColumn,
+            int minValue,
             int maxValue, int depth) {
         this.board = board;
         this.isMax = isMax;
         this.depth = depth;
+        this.moves = moves;
         this.choiceRow = choiceRow;
         this.choiceColumn = choiceColumn;
         this.minValue = minValue;
         this.maxValue = maxValue;
+        this.solved = false;
         setValue();
     }
 
     private void setValue() {
         int value = generateValue();
-        if (!isSolved) {
-            if (isMax) {
-                ownValue = Integer.MIN_VALUE;
-            } else {
-                ownValue = Integer.MAX_VALUE;
-            }
+        ownValue = value;
+        if (isMax) {
+            minValue = value;
         } else {
-            ownValue = value;
-            if (isMax) {
-                minValue = value;
-            } else {
-                maxValue = value;
-            }
+            maxValue = value;
         }
+
         nextChildColumn = 0;
         nextChildRow = 0;
     }
@@ -62,7 +59,8 @@ public class Node {
             if (board[nextChildRow][nextChildColumn] == '_') {
                 board[nextChildRow][nextChildColumn] = (isMax) ? 'X' : 'O';
 
-                Node result = new Node(board, !isMax, nextChildRow, nextChildColumn, minValue,
+                Node result = new Node(board, !isMax, moves + 1, nextChildRow, nextChildColumn,
+                        minValue,
                         maxValue, depth + 1);
 
                 nextChildColumn++;
@@ -92,6 +90,7 @@ public class Node {
         choiceColumn = result.getChoiceColumn();
         board = tempBoard;
         board[choiceRow][choiceColumn] = (isMax) ? 'X' : 'O';
+        result.setMoves(moves + 1);
         minValue = Integer.MIN_VALUE;
         maxValue = Integer.MAX_VALUE;
         this.setValue();
@@ -122,7 +121,7 @@ public class Node {
                         setValue = true;
                     }
                 }
-                if(!setValue && isRoot) {
+                if (!setValue && isRoot) {
                     node.setChoiceColumn(child.getChoiceColumn());
                     node.setChoiceRow(child.getChoiceRow());
                 }
@@ -143,7 +142,7 @@ public class Node {
                         setValue = true;
                     }
                 }
-                if(!setValue && isRoot) {
+                if (!setValue && isRoot) {
                     node.setChoiceColumn(child.getChoiceColumn());
                     node.setChoiceRow(child.getChoiceRow());
                 }
@@ -167,11 +166,12 @@ public class Node {
             column = scanner.nextInt();
         }
         board[row][column] = (isMax) ? 'O' : 'X';
+        moves++;
     }
 
 
     private int generateValue() {
-        isSolved = true;
+        solved = true;
         for (int i = 0; i < board.length; ++i) {
             if (board[i][0] == board[i][1] && board[i][1] == board[i][2] && board[i][2] != '_') {
                 return (board[i][0] == 'X') ? 10 - depth : -10 + depth;
@@ -186,7 +186,15 @@ public class Node {
         if (board[2][0] == board[1][1] && board[1][1] == board[0][2] && board[1][1] != '_') {
             return (board[1][1] == 'X') ? 10 - depth : -10 + depth;
         }
-        isSolved = false;
+        if (moves < 9) {
+            solved = false;
+            return isMax ? Integer.MIN_VALUE : Integer.MAX_VALUE;
+        }
         return 0;
+    }
+
+    public boolean checkIfSolved() {
+        int value = generateValue();
+        return !(value == Integer.MIN_VALUE || value == Integer.MAX_VALUE);
     }
 }

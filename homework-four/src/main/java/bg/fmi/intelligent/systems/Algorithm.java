@@ -7,19 +7,17 @@ public class Algorithm {
         char[][] board = generateNewMatrix();
         Scanner scanner = new Scanner(System.in);
         System.out.println("Please, type true (PC first) or false (you first):");
-        boolean isMax = scanner.nextBoolean();
-        Node node = new Node(board,isMax);
-        if(isMax) {
-            node = node.traverse();
-        } else {
+        boolean pcFirst = scanner.nextBoolean();
+        Node node = new Node(board,true);
 
-        }
-        while(!node.isSolved()) {
-            printMatrix(node.getBoard());
-            node.setValueInBoard(scanner);
+        while(!node.checkIfSolved()) {
+            if(!pcFirst) {
+                node.setValueInBoard(scanner);
+            }
             node = node.traverse();
+            printMatrix(node.getBoard());
+            pcFirst = false;
         }
-        printMatrix(node.getBoard());
     }
 
     public static  void printMatrix(char[][] board) {
